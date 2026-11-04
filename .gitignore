@@ -1,0 +1,27 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+!.env.*.example
+.tools/
+.cache/
+.local/
+__pycache__/
+*.exe
+*.log
+test-results/
+playwright-report/
+.DS_Store
+
+# Local database and application secrets
+backend/.local/
+*.pem
+*.key
+secrets/
+credentials/
+
+# Generated build and test files
+**/test-results/
+**/playwright-report/
+*.tsbuildinfo

@@ -1,0 +1,9 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "FinBook: Go API", "type": "shell", "command": "powershell", "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/scripts/start-api.ps1"], "problemMatcher": [], "presentation": { "panel": "dedicated" } },
+    { "label": "FinBook: Frontend", "type": "shell", "command": "npm.cmd", "args": ["run", "dev"], "options": { "cwd": "${workspaceFolder}/frontend" }, "problemMatcher": [], "presentation": { "panel": "dedicated" } },
+    { "label": "FinBook: Check API", "type": "shell", "command": "powershell", "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/scripts/check-api.ps1"], "problemMatcher": [] },
+    { "label": "FinBook: Build frontend", "type": "shell", "command": "npm.cmd", "args": ["run", "build"], "options": { "cwd": "${workspaceFolder}/frontend" }, "problemMatcher": [] }
+  ]
+}
