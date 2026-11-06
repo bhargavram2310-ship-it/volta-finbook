@@ -1,60 +1,94 @@
-# Local MIR folder and International Sales
+# MIR import with Go
 
-This update re-enables MIR selection alongside manual entry at the user's request. It does not enable sales persistence, approval, invoicing or posting.
+The Go backend decodes MIR files directly using backend/internal/mir/decoder
+and stages the results in MySQL. No external parser process or interpreter is
+required. Run the API and React frontend using the commands in the main README.
 
-## Use the screens
+## Import and review
 
-1. Run the Go API and React frontend using the commands in the main README.
-2. Open **International → Sales entry → MIR import**, or **International → MIR import**.
-3. Enter an absolute local directory path on the machine running the Go API, for example `D:\MIR\Incoming`.
-4. Choose **Save & lock folder**, review the path, then **Confirm & lock folder**. The directory must already exist and be accessible to the Go process.
-5. Choose **From date** and **To date**, then **Fetch MIR files**. Both dates are inclusive. The filter uses **file modification dates in the API machine's local timezone**, not a guessed ticket issue/travel date. Subfolders are not scanned.
-6. Select one ticket row, then **Proceed to sales entry**. The file hash is rechecked and the original file reparsed before the selected passenger's values are populated. Failed and duplicate rows cannot proceed.
-7. Review missing values and source issues. Open **View source & issues** for raw text, original line bytes, and SHA-256. MIR fare total is kept separate from client total and supplier total; commercial prices and tax treatments are not inferred.
-8. To correct a source field, click its pencil, enter a new value and a reason. Its badge becomes **Overridden**. Click its field badge to inspect original, previous and new values, time and reason. Repeated Proceed for an already-loaded ticket preserves its values and corrections.
+1. Sign in and open Admin Control > MIR Report.
+2. Upload MIR files. POST /api/v1/mir/import accepts up to 100 files, with a
+   maximum size of 2 MiB per file and a 32 MiB request limit.
+3. Alternatively, configure the source folder and click Pull from configured
+   folder to manually extract its MIR files. Files stay in place, and repeated
+   pulls identify already-imported records as duplicates. A pull supports up to
+   100 regular MIR files and 30 MiB total; larger folders can use upload batches.
+4. Filter staged records by MIR creation date (T50DTE). The first travel date
+   (T50DFT) is stored separately.
+5. Open a record to review its decoded sections, linked children, source bytes,
+   warnings, and parser coverage. Unsupported or ambiguous layouts retain their
+   original bytes and explicit issues rather than guessed values.
 
-## Locked configuration
+The import, folder-pull, listing, detail, and reprocessing endpoints require an authenticated
+session. Source hashes identify duplicate imports. MIR staging does not create
+sales, invoices, or financial postings.
 
-The path is saved in `backend/.local/mir-source.json`, excluded from Git. The configuration records its creation time and lock event, survives API/browser restarts, and has no HTTP edit/delete/unlock operation. Submitting the same path again is idempotent; a different path is rejected. No source files are moved, renamed or deleted. This JSON file is application configuration, not a local transaction database.
+## Optional folder setting
 
-MIR endpoints are restricted to loopback clients and recognized local application origins until real authentication/permissions are implemented. Keep the API bound to its default `127.0.0.1:8080`. This is a local preview integration, not an authenticated production deployment. Root configuration is resolved from `FINBOOK_ROOT`, or the repository root when the API is launched from `backend` using the supplied script.
+Admin Control > MIR File Reader Location retains the existing source-folder
+setting. The path is stored in backend/.local/mir-source.json, excluded from
+Git. The folder must exist on the API machine. Saving the same path is
+idempotent; another path cannot replace the locked setting through the app.
 
-## Existing parser runtime
+Folder configuration is restricted to loopback clients and recognized local
+origins. It is required for manual folder pulls and optional for uploads. The
+retired folder-date preview and Proceed endpoints have been removed.
 
-The Go backend calls `backend/integrations/mir_bridge.py`, which imports the existing **unchanged** `parser.parse_mir` from `D:\Projects\IDC-MIR-Reader`. The bridge only maps parsed, passenger-linked fields into the UI contract. There is no replacement MIR parser and no LLM extraction.
+## Sales GDS Capture
 
-Default interpreter: `D:\Projects\IDC-MIR-Reader\.venv\Scripts\python.exe`. If that environment is unavailable, set a working Python 3.10+ executable before starting the API:
+Open Sales Workspace, choose a Sales type, and open GDS Capture. Choose From Date, To Date, and
+either Processing Date (the default, first extraction timestamp in UTC) or
+Issue Date (source A02DTE), then click Show extracted data. Both dates are
+inclusive; no unfiltered list is loaded before the user applies a range. An import
+can have older ticket issue dates, so Processing Date should be used to find
+tickets extracted today. Empty Issue Date results offer a Processing Date action.
 
-```powershell
-cd 'D:\Projects\Volta-Tours-Finance'
-$env:MIR_PYTHON = 'C:\Path\To\Working\python.exe'
-$env:MIR_PARSER_ROOT = 'D:\Projects\IDC-MIR-Reader'
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-api.ps1
-```
+The grid shows one row per extracted passenger/ticket, with Ticket No, PNR No,
+GDS, Staff, Client Reference, INV No, Branch, PAX Name, Issue Date, Sector,
+Web Ref, Fare, and Proc Date. Visible columns can be toggled; only column
+preferences are stored in browser storage. Search and pagination run on the API.
 
-Replace the example interpreter path with a real executable. The parser itself uses only Python's standard library; Streamlit and pandas are not imported by this bridge. A regular Python installer or portable runtime is available from [Python's official Windows downloads](https://www.python.org/downloads/windows/). No global Python setting is changed by this project.
+Staff and Branch show source ticketing-agent sign and ticketing-office PCC,
+without guessing employee or branch-master mappings. Fares and sectors use
+explicit passenger relationships. Client Reference is shown only when the
+record has one unique customer-file reference. Unmapped Web Ref stays blank.
+Missing or invalid issue dates are excluded from Issue Date filtering and can
+still be reviewed using Processing Date. Capture is read-only and creates no
+sales or financial postings.
 
-On this workstation, the existing virtual environment points to a Windows Store Python executable that could not be launched from the current execution sandbox. A portable-runtime download attempt was also blocked by network connectivity. **Live parsing with that runtime remains unverified.** The UI and Go folder/date/hash behavior have separate automated tests with controlled synthetic parser output. This limitation must not be described as a successful real-file integration test.
+Select one ticket using its radio button, then click Proceed to open the same
+manual entry form with the selected passenger's source values. The API rechecks
+the passenger and record identity and uses explicit fare/segment associations;
+selections replaced by reprocessing must be refreshed. Ticket number, passenger,
+PNR, airline, issue date, linked travel dates/sectors, and linked fare components
+are populated when available. Exact unique airline/currency master matches are
+selected automatically. Missing customer, supplier, and commercial amounts remain
+editable and blank. Extracted values retain source lines, field identifiers, and
+raw-byte evidence; corrections require a reason.
 
-## Data and limits
+Proceed creates an unsaved in-memory draft. Selecting another ticket asks before
+replacing existing unsaved values, while proceeding again with the same ticket
+preserves corrections and entered accounting fields. Applying a new filter or
+page clears the radio selection. No sales document is saved or posted by Proceed.
 
-- File extension: `.MIR`, case-insensitive; regular files directly inside the locked directory only. Symbolic file links are rejected.
-- Limits: 2 MB per file, 100 matching files, 500 ticket rows per fetch. Narrow the range if a limit is exceeded. Parser output is bounded; request timeout is 60 seconds and each Python invocation is limited to 10 seconds.
-- Identity: original file SHA-256 + parser record + passenger item. Identical source records are flagged as duplicates in a fetch. Proceed is read-only and cannot create a sale or posting.
-- Source file changes between fetch and Proceed produce a conflict and require refetching.
-- Only uniquely parsed fields are mapped. Unrecognized layouts, unsupported financial representations and parser issues remain visible; missing amounts stay blank.
-- No whole-party fare is assigned to one passenger. No INR conversion, tax rate, commission, client sale total or supplier cost is invented.
-- Source evidence remains in the original file and the unsaved sales state. Corrections are transient until database-backed saving and immutable audit controls are implemented; reloading/leaving the app discards the unsaved ticket. No passenger data or credentials are written to browser local storage.
+## Verification
 
-## Validate on Windows
+Existing installations that have the older application tables without migration
+history can install the separate MIR staging tables using the guarded setup
+command. From `backend`, run `go run ./cmd/setup-mir -mode plan` to review the
+missing tables, then `go run ./cmd/setup-mir -mode apply`. It creates only new
+MIR staging tables and refuses partial staging schemas. Existing application
+tables and foundation migration history are not rewritten. Installations with
+recognized migration history use the normal migration runner through this
+command.
 
-```powershell
-cd 'D:\Projects\Volta-Tours-Finance'
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-api.ps1
-cd frontend
-npm.cmd run build
-$env:PLAYWRIGHT_CHANNEL = 'msedge'
-npm.cmd run test:e2e -- tests/international-mir.spec.ts --workers=2
-```
+Run go test ./... from backend for decoder, staging, configuration, and API
+tests. To exercise imports against a temporary MySQL server without changing the
+application database, run scripts/test-mir-isolated.ps1 from the repository root
+with PowerShell and its process-scoped ExecutionPolicy Bypass option.
 
-Go tests check configuration persistence, path locking, inclusive dates, file extension filtering, traversal rejection, source-hash conflicts and local access restrictions. Browser tests check the sidebar, locked source UI, date filtering, selection, population, unchanged financial blanks, source evidence, corrections and repeated Proceed on desktop and mobile. Browser fixtures never read real passenger files or alter your actual locked folder.
+The isolated tests cover synthetic file imports, duplicate detection, MIR and
+travel dates, exact decimal values, typed children, raw-byte preservation,
+authentication, and reprocessing. See mir-staging-report.txt for detailed
+coverage and known format limitations. Passing these checks does not establish
+complete support for every MIR variant.

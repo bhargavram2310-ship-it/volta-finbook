@@ -1,0 +1,116 @@
+/* Shell and dashboard reuse the existing semantic theme tokens. */
+.sidebar .nav-group { background: transparent; border-left-color: transparent; font-weight: 500; margin-top: 4px; }
+.sidebar .nav-group.group-active { background: var(--sidebar-soft); color: var(--blue-text); font-weight: 600; }
+.sidebar .nav-item.active { color: var(--blue-text); background: var(--sidebar-active); box-shadow: none; border-left: 3px solid var(--primary); padding-left: 9px; font-weight: 600; }
+.sidebar .nav-item.active svg { color: currentColor; }
+.sidebar .nav-children a { min-height: 38px; line-height: 1.45; padding-block: 9px; border-radius: 0 6px 6px 0; }
+.sidebar .nav-children a.active { border-left: 3px solid var(--primary); padding-left: 12px; font-weight: 600; }
+.sidebar .nav-item > span { white-space: normal; overflow-wrap: anywhere; }
+.topbar { min-height: 68px; height: auto; padding-block: 10px; gap: 16px; }
+.topbar .global-search { max-width: 380px; min-height: 42px; padding: 9px 12px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+.topbar .topbar-controls { margin-left: auto; gap: 8px; }
+.topbar .icon-button { width: 40px; height: 40px; }
+.topbar .profile-button { min-height: 40px; }
+.topbar .profile-copy strong { font-size: 13px; }
+.workspace-context { position: relative; }
+.workspace-context summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 10px; border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.workspace-context summary::-webkit-details-marker { display: none; }
+.workspace-context summary:hover, .workspace-context[open] summary { background: var(--surface-alt); color: var(--foreground); }
+.workspace-context-panel { position: absolute; top: calc(100% + 12px); right: 0; width: min(290px, calc(100vw - 32px)); padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; box-shadow: var(--shadow); display: grid; gap: 16px; }
+.workspace-context-panel strong { font-size: 14px; }
+.workspace-context-panel .context-select { display: grid; gap: 6px; font-size: 13px; }
+.workspace-context-panel .context-select select { width: 100%; max-width: none; min-height: 40px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-alt); font-size: 13px; }
+.workspace-context-panel p { color: var(--muted); font-size: 13px; }
+.workspace-context-panel .text-button { min-height: 32px; }
+.workspace-footer { flex-wrap: wrap; }
+.workspace-footer > span { min-width: 0; overflow-wrap: anywhere; }
+.breadcrumbs { flex-wrap: wrap; row-gap: 4px; }
+.workspace main { scroll-margin-top: 90px; }
+.erp-dashboard { max-width: 1600px; margin-inline: auto; }
+.erp-dashboard .page-heading { margin-bottom: 32px; align-items: center; }
+.erp-dashboard h1 { font-size: 30px; letter-spacing: -.8px; }
+.erp-dashboard .page-heading p { font-size: 14px; }
+.erp-dashboard .page-heading .button { min-height: 42px; font-size: 14px; }
+.erp-dashboard .section-heading { flex-wrap: wrap; margin-bottom: 10px; }
+.erp-dashboard h2 { font-size: 16px; }
+.snapshot-caption { color: var(--muted); font-size: 13px; }
+.financial-availability { display: flex; align-items: flex-start; gap: 8px; color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+.financial-availability svg { margin-top: 2px; }
+.financial-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.financial-card { min-width: 0; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; transition: border-color .15s, background .15s; }
+.financial-card:hover { border-color: var(--primary); background: var(--surface-alt); }
+.financial-card-label { display: flex; gap: 9px; align-items: flex-start; color: var(--blue-text); }
+.financial-card-label h3 { font-size: 14px; line-height: 1.5; font-weight: 500; color: var(--foreground); flex: 1; }
+.financial-card-label > svg { margin-top: 2px; }
+.financial-card-label > svg:last-child { color: var(--muted); }
+.financial-card-value { display: flex; gap: 9px; align-items: baseline; font-size: 36px; font-weight: 600; margin: 18px 0 8px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.financial-card-value small { font-size: 13px; color: var(--muted); font-weight: 500; }
+.financial-card p { font-size: 13px; line-height: 1.6; color: var(--muted); }
+.secondary-financial-grid { margin-top: 16px; gap: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.secondary-financial-grid .financial-card { border: 0; border-right: 1px solid var(--border); border-radius: 0; padding: 18px 20px; }
+.secondary-financial-grid .financial-card:last-child { border-right: 0; }
+.secondary-financial-grid .financial-card-value { font-size: 25px; margin: 10px 0 5px; }
+.secondary-financial-grid .financial-card-label > svg:first-child { color: var(--muted); }
+.dashboard-work-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; margin-top: 24px; }
+.erp-dashboard .panel-header { padding: 22px 22px 16px; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+.erp-dashboard .panel-header p { font-size: 13px; line-height: 1.6; }
+.erp-dashboard .panel-header .text-button { font-size: 13px; min-height: 28px; }
+.dashboard-data-empty { min-height: 280px; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; background: var(--surface-alt); border-top: 1px solid var(--border); }
+.dashboard-data-empty > svg { color: var(--muted); }
+.dashboard-data-empty h3 { font-size: 15px; font-weight: 500; }
+.dashboard-data-empty p { max-width: 360px; font-size: 13px; line-height: 1.7; color: var(--muted); }
+.ageing-empty { min-height: 220px; }
+.dashboard-task-list { padding: 0 22px 8px; }
+.dashboard-task-list > a { display: flex; align-items: center; gap: 12px; padding: 16px 0; min-height: 72px; border-bottom: 1px solid var(--border); }
+.dashboard-task-list > a:last-child { border-bottom: 0; }
+.dashboard-task-list > a:hover strong { color: var(--blue-text); text-decoration: underline; }
+.dashboard-task-list > a > span:nth-child(2) { flex: 1; min-width: 0; }
+.dashboard-task-list strong { display: block; font-size: 14px; font-weight: 500; }
+.dashboard-task-list small { display: block; font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
+.dashboard-task-list > a > svg { color: var(--muted); }
+.dashboard-task-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--blue-bg); color: var(--blue-text); display: grid; place-items: center; flex-shrink: 0; }
+.dashboard-service-list .service-value { white-space: nowrap; font-size: 20px; }
+.dashboard-service-list .service-value small { display: inline; font-size: 12px; }
+.dashboard-audit-link { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 24px; font-size: 13px; color: var(--muted); }
+.dashboard-audit-link a { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; color: var(--blue-text); }
+:root[data-theme="dark"] .erp-dashboard .button-primary { background: #2563eb; }
+:root[data-theme="dark"] .erp-dashboard .button-primary:hover { background: #1d4ed8; }
+@media (max-width: 1200px) {
+  .financial-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .secondary-financial-grid .financial-card:nth-child(2) { border-right: 0; }
+  .secondary-financial-grid .financial-card:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+  .dashboard-work-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+}
+@media (max-width: 950px) { .dashboard-work-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 720px) {
+  .app-layout .topbar { gap: 4px; padding: 8px 12px; min-height: 64px; }
+  .topbar .global-search { padding: 8px; font-size: 13px; }
+  .topbar .global-search > span { max-width: 115px; }
+  .topbar .topbar-controls { gap: 0; }
+  .workspace-context summary { padding: 8px; }
+  .workspace-context summary > span, .workspace-context summary > svg:last-child { display: none; }
+  .workspace-context-panel { position: fixed; top: 70px; right: 16px; }
+  .workspace-context-panel .context-select { display: grid; }
+  .topbar .icon-button, .workspace-context summary { width: 40px; height: 44px; }
+  .erp-dashboard .page-heading { align-items: flex-start; margin-bottom: 24px; }
+  .financial-grid { gap: 12px; }
+  .financial-card { padding: 16px; }
+  .financial-card-label { flex-wrap: wrap; gap: 6px; }
+  .financial-card-label h3 { flex-basis: calc(100% - 26px); }
+  .financial-card-label > svg:last-child { display: none; }
+  .financial-card-value { font-size: 30px; }
+  .secondary-financial-grid { gap: 0; }
+  .secondary-financial-grid .financial-card { padding: 16px; }
+  .erp-dashboard .panel-header { padding: 18px; }
+  .dashboard-task-list { padding-inline: 18px; }
+  .dashboard-data-empty { min-height: 230px; padding: 24px 18px; }
+  .dashboard-audit-link > span { flex: 1; }
+}
+@media (max-width: 380px) {
+  .topbar .global-search > span { display: none; }
+  .topbar .global-search { justify-content: center; max-width: 40px; }
+}
+@media (max-width: 340px) {
+  .financial-grid:not(.secondary-financial-grid) { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .financial-card { transition: none; } }

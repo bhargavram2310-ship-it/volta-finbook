@@ -1,0 +1,3 @@
+{
+    "1G": {"S": "Cash", "CK": "Cheque", "CC": "Credit card", "EX": "Exchange", "MS": "Miscellaneous", "IN": "Invoice", "NO": "Non refundable", "MR": "Multiple", "FR": "Free"},
+    "1V": {"S": "Cash", "CK": "Check", "CC": "Credit card", "X": "Check override", "EX": "Exchange", "MS": "Miscellaneous"}}

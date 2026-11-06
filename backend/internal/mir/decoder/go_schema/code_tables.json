@@ -1,0 +1,8 @@
+{
+    "A04STS": {"HK": "Holding confirmed", "HL": "Holding waitlist", "BK": "Passive sold / booked outside", "BL": "Booked outside and waitlisted", "BN": "Booked outside and requested", "AK": "Confirmed outside", "AL": "Waitlist outside", "AN": "Requested outside", "GK": "Passive sold", "NO": "Open segment", "PB": "Holding waitlist"},
+    "A04IND": {"1": "Previous day", "2": "Same day", "3": "Next day", "4": "Two days later"},
+    "A04DOM": {"D": "Domestic", "I": "International"},
+    "A04STP": {"X": "Connection / no stopover", "O": "Stopover"},
+    "A04TKT": {"Y": "Ticketed", "N": "Not ticketed"},
+    "A04FCI": {"F": "Air transportation", "": "Coupon unused / surface"},
+    "A02FFN": {"Y": "Further MIRs for this booking follow", "N": "Last / only MIR"}}

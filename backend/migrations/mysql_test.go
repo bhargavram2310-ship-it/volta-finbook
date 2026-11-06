@@ -7,7 +7,7 @@ func TestMySQLMigrationsAreOrderedAndChecksummed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(result) != 3 || result[0].Version != 1 || result[1].Version != 4 || result[2].Version != 5 {
+	if len(result) != 6 || result[0].Version != 1 || result[1].Version != 4 || result[2].Version != 5 || result[3].Version != 6 || result[4].Version != 7 || result[5].Version != 8 {
 		t.Fatalf("unexpected MySQL migration sequence: %#v", result)
 	}
 	for _, migration := range result {

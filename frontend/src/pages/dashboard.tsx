@@ -1,35 +1,60 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, Banknote, BarChart3, BookOpenCheck, CalendarDays, ChartNoAxesCombined, CheckCheck, CircleDollarSign, FilePlus2, Globe2, Landmark, Layers3, Plane, ReceiptText, ShieldCheck, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, Banknote, BarChart3, CalendarDays, ChartNoAxesCombined, CheckCheck, CircleDollarSign, FilePlus2, Globe2, Landmark, Layers3, Plane, ReceiptText, ShieldCheck, TrendingUp, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ErrorState, LoadingState } from '@/components/screen-state'
 
-const metrics: Array<{ title: string; to: string; icon: LucideIcon; hint: string; tone: string; count?: boolean }> = [
-  { title: "Today's sales", to: '/app/reports/sales', icon: ReceiptText, hint: 'Posted sales · today', tone: 'blue' },
-  { title: 'Month-to-date sales', to: '/app/reports/sales', icon: CalendarDays, hint: 'Posted sales · this month', tone: 'blue' },
-  { title: 'Gross margin', to: '/app/reports/profitability', icon: TrendingUp, hint: 'Client revenue less supplier cost', tone: 'teal' },
-  { title: 'Customer outstanding', to: '/app/reports/outstanding', icon: Wallet, hint: 'Receivables after allocations', tone: 'amber' },
-  { title: 'Supplier outstanding', to: '/app/reports/outstanding', icon: ArrowDownLeft, hint: 'Payables after settlements', tone: 'violet' },
-  { title: 'Cash balance', to: '/app/reports/cash-bank', icon: Banknote, hint: 'Posted cash ledger balance', tone: 'teal' },
-  { title: 'Bank balance', to: '/app/cash-bank/reconciliation', icon: Landmark, hint: 'Posted bank ledger balance', tone: 'blue' },
-  { title: 'Pending approvals', to: '/app/administration/approvals', icon: CheckCheck, hint: 'Approval workflow not configured', tone: 'amber', count: true },
+interface Metric { title: string; to: string; icon: LucideIcon; hint: string; count?: boolean }
+const primaryMetrics: Metric[] = [
+  { title: 'Month-to-date sales', to: '/app/reports/sales', icon: CalendarDays, hint: 'Posted sales · this month' },
+  { title: 'Gross margin', to: '/app/reports/profitability', icon: TrendingUp, hint: 'Client revenue less supplier cost' },
+  { title: 'Customer outstanding', to: '/app/reports/outstanding', icon: Wallet, hint: 'Receivables after allocations' },
+  { title: 'Supplier outstanding', to: '/app/reports/outstanding', icon: ArrowDownLeft, hint: 'Payables after settlements' },
 ]
-
+const secondaryMetrics: Metric[] = [
+  { title: "Today's sales", to: '/app/reports/sales', icon: ReceiptText, hint: 'Posted sales · today' },
+  { title: 'Cash balance', to: '/app/reports/cash-bank', icon: Banknote, hint: 'Posted cash ledger balance' },
+  { title: 'Bank balance', to: '/app/cash-bank/reconciliation', icon: Landmark, hint: 'Posted bank ledger balance' },
+  { title: 'Pending approvals', to: '/app/administration/approvals', icon: CheckCheck, hint: 'Approval workflow not configured', count: true },
+]
+function FinancialCard({ metric }: { metric: Metric }) {
+  return <Link to={metric.to} className="financial-card">
+    <div className="financial-card-label"><metric.icon size={18} aria-hidden="true" /><h3>{metric.title}</h3><ArrowUpRight size={15} aria-hidden="true" /></div>
+    <div className="financial-card-value"><span aria-hidden="true">—</span><span className="sr-only">Unavailable</span>{!metric.count && <small>INR</small>}</div>
+    <p>{metric.hint}</p>
+  </Link>
+}
 export function Dashboard() {
   const [params, setParams] = useSearchParams()
   if (params.get('state') === 'loading') return <LoadingState />
   if (params.get('state') === 'error') return <ErrorState retry={() => { const next = new URLSearchParams(params); next.delete('state'); setParams(next) }} />
-  return <>
-    <div className="page-heading"><div><div className="page-eyebrow">YOUR BUSINESS AT A GLANCE</div><h1>Overview<span className="heading-dot">.</span></h1><p>Every journey accounted for. Every number connected.</p></div><Button asChild><Link to="/app/international/sales"><FilePlus2 size={16} />Manual sales entry<ArrowUpRight size={16} /></Link></Button></div>
-    <div className="dashboard-callout"><span className="callout-icon"><BookOpenCheck size={23} /></span><div><strong>A clear start for your books</strong><p>Your workspace is ready to explore. Connect your cloud database in Phase 2 to begin setting up the company.</p></div><span className="badge badge-blue">Foundation ready</span></div>
-    <div className="section-heading"><h2>Financial snapshot</h2><span className="subtle-label"><span className="status-dot" />Awaiting posted ledger data</span></div>
-    <div className="metric-grid">{metrics.map(metric => <Link to={metric.to} className="metric-card" key={metric.title}><div className="metric-top"><span className={`metric-icon tone-${metric.tone}`}><metric.icon size={17} /></span><ArrowUpRight size={15} /></div><h3>{metric.title}</h3><div className="metric-value">—{!metric.count && <small>INR</small>}</div><p>{metric.hint}</p><span className="metric-state">Not connected</span></Link>)}</div>
-    <div className="dashboard-charts"><section className="panel"><div className="panel-header"><div><h2>Sales performance</h2><p>Daily posted sales across your services</p></div><Link to="/app/reports/sales" className="text-button">View report<ArrowUpRight size={14} /></Link></div><div className="chart-empty"><div className="chart-grid" aria-hidden="true"><i /><i /><i /><i /></div><div className="chart-empty-content"><span className="empty-icon"><ChartNoAxesCombined size={27} /></span><h3>Your sales story starts here</h3><p>Daily sales trends will appear once ledger-backed reporting is connected.</p></div></div><div className="chart-legend"><span><i className="legend-blue" />International</span><span><i className="legend-teal" />Domestic</span><span><i className="legend-violet" />Miscellaneous</span></div></section>
-      <section className="panel"><div className="panel-header"><div><h2>Sales by service</h2><p>One common sales structure</p></div><Layers3 size={18} className="text-muted" /></div><div className="service-list">{[{ name: 'International', icon: Globe2, to: 'international/sales', tone: 'blue' }, { name: 'Domestic', icon: Plane, to: 'domestic/sales', tone: 'teal' }, { name: 'Miscellaneous', icon: CircleDollarSign, to: 'miscellaneous/sales', tone: 'violet' }].map(service => <Link to={`/app/${service.to}`} key={service.name}><span className={`metric-icon tone-${service.tone}`}><service.icon size={18} /></span><div><strong>{service.name}</strong><small>Not connected</small></div><span className="service-amount">— <small>INR</small></span><Chevron /></Link>)}</div><div className="panel-note"><ShieldCheck size={15} /><span>Financial values will reconcile with posted entries.</span></div></section>
+  return <div className="erp-dashboard">
+    <div className="page-heading"><div><div className="page-eyebrow">BUSINESS OVERVIEW</div><h1>Overview</h1><p>Your sales, outstanding balances and daily priorities.</p></div><Button asChild><Link to="/app/sales/workspace"><FilePlus2 size={17} aria-hidden="true" />Sales Workspace</Link></Button></div>
+    <section aria-labelledby="financial-snapshot-heading">
+      <div className="section-heading"><h2 id="financial-snapshot-heading">Financial snapshot</h2><span className="snapshot-caption">Reporting currency · INR</span></div>
+      <p className="financial-availability"><ShieldCheck size={16} aria-hidden="true" />Figures are unavailable until posted-ledger reporting is connected. A dash does not represent zero.</p>
+      <div className="financial-grid">{primaryMetrics.map(metric => <FinancialCard key={metric.title} metric={metric} />)}</div>
+      <div className="financial-grid secondary-financial-grid">{secondaryMetrics.map(metric => <FinancialCard key={metric.title} metric={metric} />)}</div>
+    </section>
+    <div className="dashboard-work-grid">
+      <section className="panel" aria-labelledby="sales-performance-heading"><div className="panel-header"><div><h2 id="sales-performance-heading">Sales performance</h2><p>Daily posted sales across your services</p></div><Link to="/app/reports/sales" className="text-button">View report<ArrowUpRight size={15} aria-hidden="true" /></Link></div><div className="dashboard-data-empty"><ChartNoAxesCombined size={32} aria-hidden="true" /><h3>Sales trends are not available yet</h3><p>Compare International, Domestic and Miscellaneous sales here when reporting is connected.</p></div></section>
+      <section className="panel" aria-labelledby="attention-heading"><div className="panel-header"><div><h2 id="attention-heading">Needs your attention</h2><p>Approvals, refunds and source imports</p></div></div><div className="dashboard-task-list">
+        {[
+          { to: '/app/administration/approvals', title: 'Pending approvals', detail: 'Workflow not configured', icon: CheckCheck },
+          { to: '/app/international/refunds', title: 'Pending refunds', detail: 'Workflow not connected', icon: ArrowDownLeft },
+          { to: '/app/international/cancellation', title: 'Cancelled tickets', detail: 'Register not connected', icon: ReceiptText },
+          { to: '/app/administration/mir-report', title: 'MIR Report', detail: 'Fetch from your configured folder', icon: Layers3 },
+        ].map(task => <Link to={task.to} key={task.to}><span className="dashboard-task-icon"><task.icon size={18} aria-hidden="true" /></span><span><strong>{task.title}</strong><small>{task.detail}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>)}
+      </div></section>
+      <section className="panel" aria-labelledby="ageing-heading"><div className="panel-header"><div><h2 id="ageing-heading">Outstanding ageing</h2><p>Customer receivables by due date</p></div><Link to="/app/reports/outstanding" className="text-button">View ageing<ArrowUpRight size={15} aria-hidden="true" /></Link></div><div className="dashboard-data-empty ageing-empty"><BarChart3 size={28} aria-hidden="true" /><h3>Awaiting invoices and allocations</h3><p>Ageing buckets will appear here once their posted balances are available.</p></div></section>
+      <section className="panel" aria-labelledby="services-heading"><div className="panel-header"><div><h2 id="services-heading">Sales by service</h2><p>Open a service workspace</p></div></div><div className="dashboard-task-list dashboard-service-list">
+        {[
+          { name: 'International', icon: Globe2, to: 'sales/workspace?type=international' },
+          { name: 'Domestic', icon: Plane, to: 'sales/workspace?type=domestic' },
+          { name: 'Miscellaneous', icon: CircleDollarSign, to: 'sales/workspace?type=miscellaneous' },
+        ].map(service => <Link to={'/app/' + service.to} key={service.name}><span className="dashboard-task-icon"><service.icon size={18} aria-hidden="true" /></span><span><strong>{service.name}</strong><small>Sales reporting unavailable</small></span><span className="service-value"><span aria-hidden="true">—</span><span className="sr-only">Unavailable</span> <small>INR</small></span><ArrowUpRight size={15} aria-hidden="true" /></Link>)}
+      </div></section>
     </div>
-    <div className="dashboard-bottom"><section className="panel"><div className="panel-header"><div><h2>Outstanding ageing</h2><p>Customer receivables by due date</p></div><Link to="/app/reports/outstanding" className="text-button">View ageing<ArrowUpRight size={14} /></Link></div><div className="ageing-placeholder"><BarChart3 size={27} /><p>Ageing will appear after invoices and allocations are posted.</p><span className="text-muted">Buckets will be configurable in reporting.</span></div></section><section className="panel"><div className="panel-header"><div><h2>Needs your attention</h2><p>Keep the working day moving</p></div></div><div className="attention-list"><Link to="/app/international/refunds"><span className="attention-icon"><ArrowDownLeft size={17} /></span><span><strong>Pending refunds</strong><small>Workflow not connected</small></span><b>—</b><ArrowUpRight size={14} /></Link><Link to="/app/international/cancellation"><span className="attention-icon"><ReceiptText size={17} /></span><span><strong>Cancelled tickets</strong><small>Register not connected</small></span><b>—</b><ArrowUpRight size={14} /></Link><Link to="/app/international/mir"><span className="attention-icon"><Layers3 size={17} /></span><span><strong>MIR import</strong><small>Fetch from your locked folder</small></span><span className="badge badge-neutral">MIR</span></Link></div></section></div>
-    <div className="dashboard-endnote"><ShieldCheck size={15} />No sample financial balances. Figures will come from posted records only.<Link to="/app/administration/audit">Audit trail<ArrowRight size={13} /></Link></div>
-  </>
+    <div className="dashboard-audit-link"><ShieldCheck size={16} aria-hidden="true" /><span>Financial figures will reconcile with posted entries.</span><Link to="/app/administration/audit">Audit trail<ArrowRight size={15} aria-hidden="true" /></Link></div>
+  </div>
 }
-
-function Chevron() { return <ArrowUpRight size={14} className="text-muted" /> }

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const fieldKeys = ['ticketNumber', 'passengerName', 'pnr', 'airline', 'ticketDate', 'travelDate', 'sector', 'basicFare', 'basicCurrency', 'mirTotalFare', 'fareCurrency', 'billTo', 'supplier', 'clientTotal', 'supplierTotal', 'narration'] as const
+export const fieldKeys = ['ticketNumber', 'passengerName', 'pnr', 'airline', 'ticketDate', 'travelDate', 'sector', 'basicFare', 'basicCurrency', 'mirTotalFare', 'fareCurrency', 'billTo', 'supplier', 'clientTotal', 'supplierTotal', 'narration', 'serviceDescription'] as const
 export type SalesField = typeof fieldKeys[number]
 const extractedField = z.object({ value: z.string(), lines: z.array(z.number().int().positive()), fieldIds: z.array(z.string()) })
 export const mirRecordSchema = z.object({

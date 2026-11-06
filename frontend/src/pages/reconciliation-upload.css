@@ -1,0 +1,20 @@
+.statement-upload { display: grid; gap: 24px; min-width: 0; }
+.statement-upload .page-heading { margin-bottom: 0; }
+.statement-upload .panel { min-width: 0; padding: 24px; }
+.statement-upload h2 { display: flex; align-items: center; gap: 10px; font-size: 18px; margin-bottom: 16px; }
+.statement-upload-fields { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr); gap: 20px; }
+.statement-upload label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+.statement-upload input, .statement-upload select { width: 100%; max-width: 100%; min-height: 44px; border: 1px solid var(--border); background: var(--surface); color: var(--foreground); border-radius: 6px; padding: 10px; font: inherit; font-size: 14px; }
+.statement-upload input:focus-visible, .statement-upload select:focus-visible, .statement-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.statement-help { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 12px 0 18px; }
+.statement-success { display: flex; align-items: flex-start; gap: 8px; margin-top: 18px; color: var(--foreground); line-height: 1.7; overflow-wrap: anywhere; }
+.statement-success svg { flex-shrink: 0; margin-top: 4px; color: var(--primary); }
+.statement-upload table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+.statement-upload td, .statement-upload th { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.statement-upload th { white-space: nowrap; }
+.statement-link { min-height: 44px; background: transparent; border: 0; color: var(--primary); font: inherit; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.statement-selected { background: var(--surface-alt); }
+.statement-cells { display: flex; flex-wrap: wrap; gap: 6px; min-width: 240px; max-width: 760px; }
+.statement-cells span { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; }
+.statement-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 18px; font-size: 13px; }
+@media(max-width: 600px) { .statement-upload .panel { padding: 16px; }.statement-upload-fields { grid-template-columns: minmax(0, 1fr); gap: 8px; }.statement-upload input, .statement-upload select { font-size: 16px; } }

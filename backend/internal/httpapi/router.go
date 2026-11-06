@@ -9,7 +9,9 @@ import (
 	"voltafinbook/backend/internal/auth"
 	"voltafinbook/backend/internal/database"
 	"voltafinbook/backend/internal/employees"
+	"voltafinbook/backend/internal/masters"
 	"voltafinbook/backend/internal/mir"
+	"voltafinbook/backend/internal/reconciliation"
 )
 
 // The API exposes database readiness and authentication. Financial writes remain
@@ -29,18 +31,20 @@ func NewHandler(checkers ...*database.Checker) http.Handler {
 	employeeHandler := employees.NewHandler(mysqlConfig, os.Getenv("AUTH_COOKIE_SECURE") == "true")
 	mux.Handle("/api/v1/employees", employeeHandler)
 	mux.Handle("/api/v1/employees/", employeeHandler)
+	mux.Handle("/api/v1/masters/sales-lookups", masters.SalesLookups(mysqlConfig))
+	mux.Handle("/api/v1/masters/", masters.NewHandler(mysqlConfig))
+	mux.Handle("/api/v1/reconciliation/", reconciliation.NewHandler(mysqlConfig))
 	for _, path := range []string{"/api/v1/users", "/api/v1/users/", "/api/v1/roles", "/api/v1/roles/"} {
 		mux.Handle(path, employeeHandler)
 	}
 	mirSource := mir.DefaultService()
 	mux.HandleFunc("/api/v1/mir/source", mirSource.Source)
-	mux.HandleFunc("/api/v1/mir/records", mirSource.Records)
-	mux.HandleFunc("/api/v1/mir/record", mirSource.Resolve)
+	mux.Handle("/api/v1/mir/", mir.NewStageHandler(mysqlConfig))
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if !requireGET(w, r) {
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "service": "volta-finbook", "phase": 2})
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "service": "volta-finbook"})
 	})
 	mux.HandleFunc("/api/v1/status", func(w http.ResponseWriter, r *http.Request) {
 		if !requireGET(w, r) {
@@ -48,7 +52,7 @@ func NewHandler(checkers ...*database.Checker) http.Handler {
 		}
 		dbStatus := checker.Check(r.Context())
 		writeJSON(w, http.StatusOK, map[string]any{
-			"phase": 2, "entry_mode": "manual_and_mir_preview", "mir": "local_folder",
+			"entry_mode": "manual_and_mir_stage", "mir": "mysql_staging",
 			"database": dbStatus.State, "schema_ready": dbStatus.SchemaReady, "migrations": dbStatus.Migrations, "authentication": authenticationState(mysqlConfig != nil),
 			"posting": "not_implemented", "tax_rules": "to_be_verified_by_finance",
 		})

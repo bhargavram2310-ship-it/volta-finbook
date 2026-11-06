@@ -10,7 +10,29 @@ import (
 	"time"
 
 	"voltafinbook/backend/internal/database"
+	"voltafinbook/backend/migrations"
 )
+
+type migrationPlan struct {
+	Status  database.MigrationStatus `json:"status"`
+	Pending []migrationSummary       `json:"pending"`
+}
+
+type migrationSummary struct {
+	Version  int    `json:"version"`
+	Name     string `json:"name"`
+	Checksum string `json:"checksum"`
+}
+
+func buildMigrationPlan(status database.MigrationStatus, all []migrations.Migration) migrationPlan {
+	plan := migrationPlan{Status: status, Pending: make([]migrationSummary, 0, status.Pending)}
+	for _, migration := range all[status.Applied:] {
+		plan.Pending = append(plan.Pending, migrationSummary{
+			Version: migration.Version, Name: migration.Name, Checksum: migration.Checksum,
+		})
+	}
+	return plan
+}
 
 func main() {
 	mode := flag.String("mode", "status", "plan, status or apply")
@@ -21,10 +43,7 @@ func main() {
 	}
 }
 func run(mode string) error {
-	if mode == "plan" {
-		return errors.New("MySQL migrations are not available yet; PostgreSQL migration SQL is not a valid MySQL plan")
-	}
-	if mode != "status" && mode != "apply" {
+	if mode != "plan" && mode != "status" && mode != "apply" {
 		return errors.New("invalid mode")
 	}
 	config, err := database.LoadConfig()
@@ -46,6 +65,13 @@ func run(mode string) error {
 	}
 	if err != nil {
 		return err
+	}
+	if mode == "plan" {
+		all, err := migrations.MySQLAll()
+		if err != nil {
+			return err
+		}
+		return json.NewEncoder(os.Stdout).Encode(buildMigrationPlan(status, all))
 	}
 	return json.NewEncoder(os.Stdout).Encode(status)
 }

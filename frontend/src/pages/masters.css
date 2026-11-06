@@ -1,0 +1,19 @@
+.master-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.master-tabs button { background: var(--surface); color: var(--muted); border: 1px solid var(--border); border-radius: 7px; padding: 11px 15px; font: inherit; font-size: 14px; cursor: pointer; }
+.master-tabs button[aria-current="page"] { background: var(--blue-bg); color: var(--blue-text); border-color: var(--primary); }
+.master-tabs button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.master-row-actions { display: flex; gap: 8px; }
+.master-empty { padding: 36px 20px; text-align: center; }
+.master-empty p { margin-top: 8px; color: var(--muted); font-size: 14px; }
+.master-dialog { width: min(760px, calc(100vw - 32px)); }
+.master-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.master-form-grid .form-field { margin: 0; min-width: 0; }
+.master-form-grid label { display: block; margin-bottom: 7px; }
+.master-form-grid select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font: inherit; background: var(--surface); color: var(--foreground); }
+.master-form-grid select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.master-form-grid small { display: block; margin-top: 6px; color: var(--muted); }
+.master-field-wide { grid-column: 1 / -1; }
+.master-field-wide textarea { min-height: 115px; font-family: monospace; }
+.master-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.master-dialog .field-error { margin-top: 15px; }
+@media (max-width: 600px) { .master-form-grid { grid-template-columns: 1fr; }.master-form-grid select, .master-form-grid input, .master-form-grid textarea { font-size: 16px; }.master-row-actions .button { min-height: 44px; } }

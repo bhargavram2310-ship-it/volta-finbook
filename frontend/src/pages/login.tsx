@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,6 +18,16 @@ type PasswordFields = z.infer<typeof passwordSchema>
 
 export function Login() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  // Accept only application destinations on this origin.
+  const requestedPath = params.get('returnTo') ?? ''
+  let returnTo = '/app/dashboard'
+  try {
+    const target = new URL(requestedPath, window.location.origin)
+    if (target.origin === window.location.origin && target.pathname.startsWith('/app/')) {
+      returnTo = target.pathname + target.search + target.hash
+    }
+  } catch { /* An invalid return address uses the overview. */ }
   const [showPassword, setShowPassword] = useState(false)
   const [forgot, setForgot] = useState(false)
   const [message, setMessage] = useState('')
@@ -53,7 +63,7 @@ export function Login() {
         resetField('password')
         return
       }
-      navigate('/app/dashboard', { replace: true })
+      navigate(returnTo, { replace: true })
     } catch {
       setMessage('Could not reach the sign-in service. Check the API and try again.')
       resetField('password')
@@ -85,7 +95,7 @@ export function Login() {
         }
         return
       }
-      navigate('/app/dashboard', { replace: true })
+      navigate(returnTo, { replace: true })
     } catch {
       setMessage('Could not reach the sign-in service. Try again.')
     } finally {
@@ -105,7 +115,7 @@ export function Login() {
       <footer>VOLTA Tours and Travels <span>Sales · Operations · Accounting</span></footer>
     </section>
     <section className="login-form-side">
-      <span className="badge badge-blue login-phase">{passwordChangeRequired ? 'Secure account setup' : 'Secure sign in'}</span>
+      <span className="badge badge-blue login-security">{passwordChangeRequired ? 'Secure account setup' : 'Secure sign in'}</span>
       <div className="login-form-content"><div className="login-lock"><LockKeyhole size={24} /></div>
         <h2>{passwordChangeRequired ? 'Update your password' : 'Welcome to FinBook'}</h2>
         <p className="text-muted">{passwordChangeRequired ? 'Choose a new password with at least 6 characters to continue.' : 'Enter the username or email selected for your account. Initial login: SuperAdmin / SuperAdmin.'}</p>

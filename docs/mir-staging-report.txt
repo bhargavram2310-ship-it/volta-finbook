@@ -1,0 +1,199 @@
+VOLTA FinBook MIR staging implementation report
+
+Status: staging infrastructure implemented and exercised; complete guide decoding
+is NOT implemented. No section is claimed fully decoded or exhaustively tested.
+
+Workspace: C:\KGM 110 Projects\Volta-Tours-Finance
+The requested D:\Projects\Volta-Tours-Finance path is unavailable on this host.
+Pre-existing uncommitted changes were retained. Existing sidebar assertions in
+international-mir.spec.ts were retained while superseded conversion tests were
+replaced by staging tests.
+
+Business behavior
+  Import mode is STAGE. One MIR, rather than one passenger, is a staging record.
+  Import does not write Sales, vouchers, ledgers or postings.
+  MIR date comes exclusively from T50DTE. T50DFT has a separate date column.
+  Invalid T50DTE leaves the date NULL and records a validation error, with no
+  fallback to travel date, file time or import time. DDMMMYY normalization uses
+  Go's explicit year pivot: 00-68 => 2000-2068; 69-99 => 1969-1999.
+  Original bytes are durable in MySQL, including unsupported and failed records.
+  Generic sections/items/fields retain evidence alongside 19 business child tables.
+  Passenger/fare/segment joins use explicit guide references and ignore ambiguous
+  competing targets. PNR passenger identities are not invented from item order.
+  Multiple fares remain separate; the list leaves its fare summary blank when
+  there is more than one A07 fare. No monetary aggregation or conversion is inferred.
+
+Created files
+  backend/internal/mir/decoder/parser.go
+  backend/internal/mir/decoder/schema.go
+  backend/internal/mir/decoder/staging.go
+  backend/internal/mir/decoder/extended.go
+  backend/internal/mir/decoder/staging_test.go
+  backend/internal/mir/decoder/go_schema/fields.json
+  backend/internal/mir/decoder/go_schema/code_tables.json
+  backend/internal/mir/decoder/go_schema/payment_codes.json
+  backend/internal/mir/decoder/go_schema/header_indicator_codes.json
+  backend/internal/mir/staging_model.go
+  backend/internal/mir/staging_repository.go
+  backend/internal/mir/staging_handler.go
+  backend/internal/mir/staging_test.go
+  backend/internal/mir/staging_integration_test.go
+  backend/migrations/mysql/0006_mir_staging.sql
+  frontend/src/pages/mir-import.tsx
+  frontend/src/pages/mir-import.css
+  frontend/tests/mir-staging.spec.ts
+  scripts/test-mir-isolated.ps1
+  docs/mir-staging-report.txt
+
+Modified files for this implementation
+  backend/internal/httpapi/router.go
+  backend/migrations/mysql_test.go
+  frontend/src/main.tsx
+  frontend/src/lib/navigation.ts
+  frontend/src/pages/international-sales.tsx
+  frontend/tests/international-mir.spec.ts
+  docs/mir-local-source.md
+
+Parser provenance
+  Reused the adjacent IDC-MIR-Reader/go-version parser and reviewed field/code
+  schema within this backend's internal/mir/decoder package. This is not a new
+  application or an external Python runtime dependency. Additional bases were
+  transcribed from the supplied Travelport MIR User Guide, September 30, 2025,
+  and its existing extracted guide_inspection.txt. The adjacent parser, PDF and
+  private source samples were read without modification. The guide is authoritative;
+  observed sample differences are flagged rather than promoted to new definitions.
+
+Registry and field decoder coverage
+  All 32 requested identifiers are recognized. A25 is not invented.
+  The 29 sections below have PARTIAL field decoders:
+
+  A00: Customer identification remark and TO email. CL client-file continuations
+       are not implemented; raw lines retained.
+  A01: Corporate/group-name base. Additional continuation bytes are not decoded.
+  A02: Passenger base and reviewed optional identifiers. TD colon spelling,
+       TLD width and FFN displacement conflicts are flagged; arbitrary extra
+       optional/tail structures are not fully implemented.
+  A03: Frequent flyer base and cross-accrual list. Additional continuations and
+       explicit passenger links are not reconstructed from row order.
+  A04: Normal air base and reviewed optional fields. ARNK, surface/taxi, zero or
+       blank carrier-number alternatives are retained without normal-air decoding.
+  A05: Waitlist/other-air base. Optional and alternative layouts remain incomplete.
+  A06: Repeated seat/smoking groups. COG continuation and passenger identity
+       remain unresolved; no passenger identity is inferred from seat order.
+  A07: Reviewed fare base, general and individual tax groups. Large-fare and other
+       unimplemented optional representations remain raw. No inferred totals.
+  A08: Fare-basis base and reviewed optional identifiers. Other optional and
+       continuation variants are not exhaustively implemented or tested.
+  A09: Fare association/type and up to five physical construction lines.
+       VAT/additional lines and ticket-dependent line variants remain incomplete.
+  A10: Exchange association identifier only. Legacy Apollo and newer exchange
+       layouts require explicit disambiguation; financial payload is not decoded.
+  A11: Payment base, host-specific approval widths and reviewed optional fields.
+       Early optional tags before guide approval boundaries are marked ambiguous.
+  A12: City/location/phone inspection fields. Guide phone displacement/location
+       width conflicts make those phone fields ambiguous, not accepted typed values.
+  A13: Address base/data region. Additional continuation layouts remain raw.
+  A14: Host-specific remark base. Additional continuation bytes remain raw.
+  A15: Segment reference and host-specific remark text. Further continuations
+       remain raw. Segment 00 does not manufacture an association.
+  A16: Travelport+ UZ due/paid variant only. Car, hotel, tour, SVC and other
+       auxiliary variants are not implemented.
+  A17: LeisureShopper fixed base. Cruise/tour optional structures are unimplemented.
+  A19: Miscellaneous-document base and ST/EB/R1/R2/R3/TN lines. ER/RI and other
+       optional data are not implemented.
+  A20: SSR fixed base and FT free text. Other host extensions remain raw.
+  A21: Net-remit base. Other continuation variants are not verified.
+  A22: Seat base. SCHX displacement 12 overlaps SEN bytes 8-13 in the guide;
+       characteristics and repeated seat structure remain unresolved.
+  A23: Refund ticket/date/invoice/name base. CDI displacement conflicts with C01;
+       optional financial and large-fare refund structures are unimplemented.
+  A24: Fare reference/type and first construction line. Later lines unimplemented.
+  A28: Other fare-level fixed base. Its optional tax structures are unimplemented;
+       typed fare-tax mapping currently covers reviewed A07 taxes only.
+  A29: Fixed EMD fields. ED- variable identifier structures remain unimplemented.
+  A30: Fixed EMD coupon fields. EC- variable structures remain unimplemented.
+  A31: Rail segment/leg/journey identity. Remaining rail business fields and
+       associated-remark structures are unimplemented; rail numbers are not
+       assumed to be PNR itinerary numbers.
+  A32: TASF passenger name and fee number. Remaining fee/tax/payment and
+       additional-name continuation structures are unimplemented.
+
+  Recognized without business field decoding:
+  A18: UNSUPPORTED because the guide discontinues it; original bytes retained.
+  A26: UNRESOLVED because SEC/DAT displacements conflict with the illustrated
+       XML block layout. Raw blocks are retained; no XML positions are invented.
+  A27: UNRESOLVED because fee flags, fare indicator and total offsets conflict.
+       Fee/tax business fields are not guessed.
+
+  Incomplete sections have explicit decoder status/reason in the database and API.
+  Field-level parsed/blank/truncated/ambiguous/type/code status and source byte
+  offsets are retained. A mapping overlap falls back to an opaque failed record.
+  T50SZE is the only stream splitter. An unreliable size boundary remains one
+  failed record; header-looking continuation text never manufactures a record.
+
+Database migration and persistence
+  Added version 0006_mir_staging.sql: 27 additive InnoDB tables with primary,
+  unique and foreign keys; MIR-date/status/locator/source/batch/search indexes.
+  Original source BLOB and SHA-256 have a unique source checksum. Each record's
+  parent, generic fields, typed children and explicit relationships insert in one
+  transaction. Reprocess locks the parent and replaces all children atomically.
+  Failed replacement restores previous children. An interrupted source with no
+  completed record can resume on retry without duplicating its source file.
+  A separate durable record-error table captures transaction failures.
+
+  Applied 0001, 0004, 0005 and 0006 successfully in a fresh isolated MySQL 8.4
+  test database. The test instance and generated database were removed afterward.
+
+  Configured application database: migration plan AND apply refused with:
+    application tables exist without recognized migration history
+  No existing application tables or data were overwritten or baselined.
+  The configured account also could not create a separate test database, so
+  verification used a temporary local MySQL instance instead. Reconciliation of
+  the existing schema/history is still required before installing the new screen
+  against that database. It is not described as migrated or production-ready.
+
+API and UI
+  POST /api/v1/mir/import
+  GET  /api/v1/mir/records
+  GET  /api/v1/mir/records/{id}
+  GET  /api/v1/mir/batches
+  GET  /api/v1/mir/batches/{id}
+  POST /api/v1/mir/records/{id}/reprocess
+  All use the existing authenticated-session middleware and password-change gate.
+  Mutations validate request origin. Parameters are validated; filtering and
+  pagination run in MySQL. Record detail uses a consistent database snapshot.
+  Limits: 100 upload files, 2 MiB each, 32 MiB request; page_size 1-200.
+  Guide per-record limits: Travelport+ 32767 bytes; Apollo 50000 bytes.
+  Batch history uses 50-row pages. Search is an escaped prefix search.
+
+  The existing International MIR navigation now opens a real API-backed staging
+  screen, with upload/import/refresh, date/status/search filters, records and batch
+  history, and all 17 requested detail sections. Raw and unresolved information
+  remains available. The previous direct Sales-population picker is removed.
+
+Verification
+  gofmt: passed.
+  go test ./...: passed (isolated DB suite is explicitly opt-in).
+  go build ./...: passed.
+  npm run build: passed; non-fatal existing dependency annotation/bundle warnings.
+  MIR browser tests: 12 desktop/mobile tests passed in a dedicated server run.
+  Browser fixtures are labelled synthetic and test presentation only.
+  Actual authenticated HTTP + MySQL tests: passed in the isolated instance,
+  including AABYXGAL.MIR, two-passenger staging, duplicates, a size-framed
+  two-record stream, malformed-record retention, record detail, batch detail,
+  reprocessing twice, interrupted-source retry, transactional rollback, orphan
+  FK rejection, parent-child verification, and independent MIR/travel date filters.
+  Decoder tests cover all identifiers, selected guide layouts, optional/repeated
+  items, continuations, host payment differences, CR/CRLF/LF preservation,
+  unknown sections, truncation, random malformed bytes, record limits and source
+  reconstruction. Synthetic fixtures are not represented as actual Travelport data.
+
+Remaining work / blockers
+  1. Reconcile the configured application's existing schema and migration history
+     through a reviewed additive/baseline process before applying migration 0006.
+     The current migration safeguard was preserved, not bypassed.
+  2. Finish the explicitly incomplete decoders and typed mappings above. The guide
+     is available; many remaining structures are unimplemented work, not missing
+     source material. A26/A27 and specified field conflicts need clarification.
+  3. Add exhaustive guide-defined optional, host-specific and continuation fixtures
+     as those decoders are completed. Current tests do not prove full guide coverage.

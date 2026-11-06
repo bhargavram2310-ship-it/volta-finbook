@@ -59,10 +59,11 @@ test('keyboard search opens manual entry without enabling financial writes', asy
   await page.keyboard.press('Control+k')
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
-  await dialog.getByRole('combobox').fill('International Sales entry')
+  await dialog.getByRole('combobox').fill('Sales Workspace')
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/international\/sales/)
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Sales entry')
+  await expect(page).toHaveURL(/sales\/workspace/)
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Sales Workspace')
+  await page.getByRole('tab', { name: 'Entry', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Post', exact: true })).toBeDisabled()
   await expect(page.getByRole('button', { name: 'New document' })).toBeDisabled()
 })
@@ -71,13 +72,13 @@ test('every FRD destination has an explicit connected or deferred screen', async
   test.setTimeout(120_000)
   for (const destination of allPages) {
     await page.goto(`/app/${destination.id}`)
-    await expect(page.locator('main h1')).toContainText(destination.label)
-    await expect(page.getByText('Phase 2 foundation.', { exact: false })).toBeVisible()
+    await expect(page.locator('main h1')).toContainText(destination.label, { ignoreCase: true })
+    await expect(page.locator('.workspace-footer [role="status"]')).toBeVisible()
   }
 })
 
 test('theme and saved filters survive reload without storing business data', async ({ page }) => {
-  await page.goto('/app/international/sales')
+  await page.goto('/app/international/sales?mode=manual')
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
   await page.getByLabel('Status filter').selectOption('Draft')
   await page.getByRole('button', { name: 'Saved views' }).click()
@@ -93,9 +94,9 @@ test('theme and saved filters survive reload without storing business data', asy
 })
 
 test('loading and recoverable error states are accessible', async ({ page }) => {
-  await page.goto('/app/masters/customers?state=loading')
+  await page.goto('/app/domestic/tickets?state=loading')
   await expect(page.getByRole('status', { name: 'Loading screen' })).toBeVisible()
-  await page.goto('/app/masters/customers?state=error')
+  await page.goto('/app/domestic/tickets?state=error')
   await expect(page.getByRole('alert')).toContainText('This screen could not load')
   await page.getByRole('button', { name: 'Try again' }).click()
   await expect(page.getByText('Your records will appear here')).toBeVisible()

@@ -25,3 +25,7 @@ credentials/
 **/test-results/
 **/playwright-report/
 *.tsbuildinfo
+
+# Local scratch files
+backend/cmd/inspecttmp/
+/ntent backend.env.example
